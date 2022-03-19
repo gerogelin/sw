@@ -345,7 +345,7 @@ int main(int argc, char* argv[])
             }
 
             std::string calibTable = std::string(argv[++ii]);
-            std::transform(calibTable.begin(), calibTable.end(), calibTable.begin(), ::tolower);
+            //std::transform(calibTable.begin(), calibTable.end(), calibTable.begin(), ::tolower);
             testAppArgs.calibTable = calibTable;
         }
         else // unknown
@@ -373,9 +373,11 @@ int main(int argc, char* argv[])
         NvDlaDebugPrintf("    -o <outputpath>                                             outputs wisdom files in 'outputpath' directory\n");
         NvDlaDebugPrintf("    --profile <basic|default|performance|fast-math>             computation profile (default: fast-math)\n");
         NvDlaDebugPrintf("    --cprecision <fp16|int8>                                    compute precision (default: fp16)\n");
-        NvDlaDebugPrintf("    --configtarget <opendla-full|opendla-large|opendla-small>   target platform (default: nv_full)\n");
+        NvDlaDebugPrintf("    --configtarget <nv_full|nv_large|nv_small>                  target platform (default: nv_full)\n");
         NvDlaDebugPrintf("    --calibtable <int8 calib file>                              calibration table for INT8 networks (default: 0.00787)\n");
         NvDlaDebugPrintf("    --quantizationMode <per-kernel|per-filter>                  quantization mode for INT8 (default: per-kernel)\n");
+        NvDlaDebugPrintf("                                                                pre-kernel: in C x R x S wise\n");
+        NvDlaDebugPrintf("                                                                pre-kernel: in R x S wise\n");
         NvDlaDebugPrintf("    --batch                                                     batch size (default: 1)\n");
         NvDlaDebugPrintf("    --informat <ncxhwx|nchw|nhwc>                               input data format (default: nhwc)\n");
 
