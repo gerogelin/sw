@@ -89,29 +89,29 @@ static NvDlaError getOpenMode(NvU32 flags, int *mode)
     switch( flags )
     {
         case NVDLA_OPEN_READ:
-            *mode = O_RDONLY | O_LARGEFILE;
+            *mode = O_RDONLY;
             break;
         case NVDLA_OPEN_WRITE:
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_WRITE:
-            *mode = O_CREAT | O_WRONLY | O_TRUNC | O_LARGEFILE;
+            *mode = O_CREAT | O_WRONLY | O_TRUNC;
             break;
         case NVDLA_OPEN_READ | NVDLA_OPEN_WRITE:
-            *mode = O_RDWR | O_LARGEFILE;
+            *mode = O_RDWR;
             break;
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_READ | NVDLA_OPEN_WRITE:
-            *mode = O_CREAT | O_RDWR | O_TRUNC | O_LARGEFILE;
+            *mode = O_CREAT | O_RDWR | O_TRUNC;
             break;
         case NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_WRITE | NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_WRITE | NVDLA_OPEN_APPEND:
-            *mode = O_CREAT | O_WRONLY | O_APPEND | O_LARGEFILE;
+            *mode = O_CREAT | O_WRONLY | O_APPEND;
             break;
         case NVDLA_OPEN_READ | NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_READ | NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_READ | NVDLA_OPEN_WRITE | NVDLA_OPEN_APPEND:
         case NVDLA_OPEN_CREATE | NVDLA_OPEN_READ | NVDLA_OPEN_WRITE | NVDLA_OPEN_APPEND:
-            *mode = O_CREAT | O_RDWR | O_APPEND | O_LARGEFILE;
+            *mode = O_CREAT | O_RDWR | O_APPEND;
             break;
         default:
             return NvDlaError_BadParameter;
@@ -435,7 +435,7 @@ NvDlaError NvDlaFread(NvDlaFileHandle stream, void *ptr,
 
 NvDlaError NvDlaFseek(NvDlaFileHandle file, NvS64 offset, NvDlaSeekEnum whence)
 {
-    loff_t off;
+    off_t off;
     int seekMode;
 
     if(!file)
@@ -449,7 +449,7 @@ NvDlaError NvDlaFseek(NvDlaFileHandle file, NvS64 offset, NvDlaSeekEnum whence)
         return NvDlaError_BadParameter;
     }
 
-    off = lseek64(file->fd, (loff_t)offset, seekMode);
+    off = lseek(file->fd, (off_t)offset, seekMode);
     if (off < 0)
         return NvDlaError_FileOperationFailed;
     return NvDlaSuccess;
