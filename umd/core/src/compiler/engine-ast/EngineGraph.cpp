@@ -1067,6 +1067,7 @@ NvDlaError engine_ast::Graph::preProcessAuxData()
         PROPAGATE_ERROR_FAIL((*ni)->preProcessAuxData());
     }
 
+    printGraph(this, true, "finish preProcessAuxData");
     // check dirty and re-determine graph order
     checkDirty();
     PROPAGATE_ERROR_FAIL(refreshGraphState());

@@ -740,11 +740,11 @@ static ILayer* parseDeconvolution(INetwork * network, const dc::LayerParameter& 
                                               kernelSize, tlPadding, brPadding, stride, dilation,
                                               kernelWeights, biasWeights, biasMode, numGroups);
 
-    if (numGroups != 1)
-    {
-        // std::cout << "Deconvolution layer: groups not supported" << std::endl;
-        return 0;
-    }
+    //if (numGroups != 1)
+    //{
+        //// std::cout << "Deconvolution layer: groups not supported" << std::endl;
+        //return 0;
+    //}
 
     return layer;
 }

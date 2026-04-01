@@ -100,8 +100,8 @@ public: // internally facing
     inline bool debugVersions() const { return false; }
     inline bool debugTasks() const { return false; }
     inline bool debugMemoryLayout() const { return false; }
-    inline bool debugGraphs() const { return false; }
-    inline bool debugProfile() const { return false; }
+    inline bool debugGraphs() const { return true; }
+    inline bool debugProfile() const { return true; }
 
 protected:
 

@@ -35,6 +35,7 @@
 
 #include "ErrorMacros.h"
 
+using std::cout;
 using std::endl;
 
 namespace nvdla
@@ -197,7 +198,11 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
     {
         NvS32 splitSetW = (NvS32)ceilf(origWtDims.w/float(params().stride().w));
         NvS32 splitSetH = (NvS32)ceilf(origWtDims.h/float(params().stride().h));
-        splitSetWtDims = Dims4(origWtDims.n, origWtDims.c, splitSetH, splitSetW);
+        // add dummy channel to avoid use group convolution
+        // origWtDims.c == 1
+        // fill with to output channel, which is origWtDims.n
+        splitSetWtDims = Dims4(origWtDims.n, origWtDims.n, splitSetH, splitSetW);
+        cout << "(n, c, h, w): " << splitSetWtDims.n << "," << splitSetWtDims.c << "," << splitSetWtDims.h << "," << splitSetWtDims.w << endl;
 
         /* Split weights based on deconvolution strides */
         PRECISION_SWITCH(rawKCRSWts.type.v(), computePrecision.v(), splitSetWts, WeightTrns::splitWeightsForDeconv,
@@ -256,6 +261,7 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
 
         origDeconvNode->params().setRawWeights(splitSetWts[0]);
         origDeconvNode->params().setWeightDims(splitSetWtDims);
+        origDeconvNode->params().setNumGroups(1);
         deconvAuxEdge->originalTensor()->setDimensions(splitSetWtDims);
         deconvAuxEdge->tensorSurfaceDesc()->setDimensions(splitSetWtDims);
 
@@ -292,10 +298,27 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
          *
          * Similar justification holds true for width computation.
          **/
+
+        Dims2 origSrcTLPad = origDeconvNode->params().topLeftPadding();
+        Dims2 origSrcBRPad = origDeconvNode->params().bottomRightPadding();
+        if (origSrcTLPad.h != origSrcBRPad.h || origSrcTLPad.w != origSrcBRPad.w || origSrcTLPad.h != origSrcTLPad.w)
+        {
+            ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported,
+                                "Padding issue, padding needs to be same: (Top, Bottom) = (%d, %d)",
+                                origSrcTLPad.h,
+                                origSrcBRPad.h);
+
+            ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported,
+                                "Padding issue, padding needs to be same: (Right, Left) = (%d, %d)",
+                                origSrcTLPad.w,
+                                origSrcBRPad.w);
+        }
+
+        NvU32 averagePad = (origSrcBRPad.h + origSrcBRPad.h) / origDeconvStride.h; // assumpt the padding is equal in 4 direction
         splitStreamDims = Dims4(origDstDims.n,
                                 origDstDims.c,
-                                origSrcDims.h - splitSetWtDims.h + 1,
-                                origSrcDims.w - splitSetWtDims.w + 1);
+                                origSrcDims.h - splitSetWtDims.h + averagePad + 1,
+                                origSrcDims.w - splitSetWtDims.w + averagePad + 1);
 
         if (splitStreamDims.h * origDeconvStride.h != origDstDims.h ||
             splitStreamDims.w * origDeconvStride.w != origDstDims.w)
@@ -356,6 +379,7 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
         splitDeconvNodes.push_back(origDeconvNode);
         splitSDPNodes.push_back(origFusedSDPNode);
 
+        // only the last n-1 node need to create, the first one will use the origin one
         for (NvU16 n = 1; n < numSplits; ++n)
         {
             ConvCoreDeconvolutionOpNode* newSplitDeconvNode = NodeFactory::newConvCoreDeconvolutionOpNode(canDeconvNode, graph());
@@ -366,6 +390,7 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
             newSplitDeconvNode->params().setStride(splitDeconvStride);
             newSplitDeconvNode->params().setRawWeights(splitSetWts[n]);
             newSplitDeconvNode->params().setWeightDims(splitSetWtDims);
+            newSplitDeconvNode->params().setNumGroups(1);
             // fixme: non-functional deconv: copy filter scales in all deconv split nodes; in future assign apt filter scales to each
             newSplitDeconvNode->params().setFilterScales(origDeconvNode->params().filterScales());
 
@@ -403,6 +428,7 @@ NvDlaError engine_ast::ConvCoreDeconvolutionOpNode::preProcessAuxData()
 
             splitDeconvNodes.push_back(newSplitDeconvNode);
             splitSDPNodes.push_back(newSplitSDPNode);
+            //cout << "group of splitconv: " << newSplitDeconvNode->params().numGroups() << endl;
         }
 
         // finally determine contract op params that satisfy hardware requirements for Rubik

@@ -3232,7 +3232,7 @@ public:
 
     NvDlaError determineContractOpParams();
 
-    inline bool debugRubik() const { return false; }
+    inline bool debugRubik() const { return true; }
 
     OpParams& params(NvU16 batchId = 0) { return m_mb_op_params->batch(batchId); }
     virtual void captureCanonicalParams();

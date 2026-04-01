@@ -158,7 +158,7 @@ void TargetConfig::setName(const char* n)
         m_targetConfigParams.m_isSDPEltWiseCapable = false;
         m_targetConfigParams.m_isSDPLutCapable = false;
         m_targetConfigParams.m_isBDMACapable = false;
-        m_targetConfigParams.m_isRubikCapable = false;
+        m_targetConfigParams.m_isRubikCapable = true;
         m_targetConfigParams.m_isWinogradCapable = false;
         m_targetConfigParams.m_isCompressWeightsCapable = false;
         m_targetConfigParams.m_isBatchModeCapable = false;

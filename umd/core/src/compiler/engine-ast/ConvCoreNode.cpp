@@ -670,7 +670,9 @@ NvDlaError engine_ast::ConvCoreNode::quantizeAuxData()
 
     NvU32 G = params().numGroups();
     NvU32 K = params().weightDims().n / G;
-    NvU32 C = params().weightDims().c / G;
+    NvU32 C = params().weightDims().c;
+    if (G == 1)
+        C = params().weightDims().c / G;
     NvU32 RS = params().weightDims().h * params().weightDims().w; // per-group values
     NvU32 kStride = C * RS;
     NvU32 cStride = RS;
@@ -706,11 +708,11 @@ NvDlaError engine_ast::ConvCoreNode::quantizeAuxData()
     }
 
     // not yet support weight quantization for group convolutions
-    if (params().numGroups() != 1)
-    {
-        ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support weight quantization for group convolutions yet for %s\n",
-                                name().c_str());
-    }
+    //if (params().numGroups() != 1)
+    //{
+        //ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support weight quantization for group convolutions yet for %s\n",
+                                //name().c_str());
+    //}
 
     quantizedWts = reinterpret_cast<NvS8*>(std::malloc(origWtsBlob.count * sizeof(NvS8)));
 

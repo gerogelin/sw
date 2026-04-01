@@ -193,13 +193,9 @@ class WeightTrns
                             max = std::max<NvF32>(max, std::fabs(origWts[gOffset + k * kStride + c * cStride + rs]));
                     }
                 }
-            }
 
-            NvF32 scale = max / 127, invScale = 1 / scale;
+                NvF32 scale = max / 127, invScale = 1 / scale;
 
-            for (NvS32 g = 0; g < G; g++)
-            {
-                NvS32 gOffset = g * K * C * RS;
                 for (NvS32 k = 0; k < K; k++)
                 {
                     for (NvS32 c = 0; c < C; c++)
@@ -847,7 +843,7 @@ class WeightTrns
             NvS32 splitSetW = (NvS32)ceilf(origWtDims.w/float(deconvStrides.w));
             NvS32 splitSetH = (NvS32)ceilf(origWtDims.h/float(deconvStrides.h));
 
-            splitSetWtDims = Dims4(origWtDims.n, origWtDims.c, splitSetH, splitSetW);
+            //splitSetWtDims = Dims4(origWtDims.n, origWtDims.c, splitSetH, splitSetW);
 
             // Splitting weight data
             IT* pKCRS = reinterpret_cast<IT*>(const_cast<void*>(rawKCRSWts.values));
@@ -878,7 +874,7 @@ class WeightTrns
                                 {
                                     NvU16 sJumpIndex = sStartIndex + (s * deconvStrides.w);
                                     NvU16 rJumpIndex = rStartIndex + (r * deconvStrides.h);
-                                    if ((sJumpIndex < origWtDims.w) && (rJumpIndex < origWtDims.h))
+                                    if ((sJumpIndex < origWtDims.w) && (rJumpIndex < origWtDims.h) && c == k)
                                     {
                                         NvU32 unsplitWtIndex = sJumpIndex + origWtDims.w *
                                             (rJumpIndex + origWtDims.h *
